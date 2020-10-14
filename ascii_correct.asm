@@ -7,12 +7,14 @@ section .text
 	global _start
 
 _start:
+	mov rax, 0
 	mov r14, 0	;borrrraaaaaaaaaaaaaaaaarrrrrrrrrrrrrrrrrr
-	mov rax, 107
 	mov r12, 32	;resultado
 	mov rbx, 10	;constante de división
 	mov r11, 100	;constante para ubicación
 	mov rdx, 1	;inicializo el registro
+	cmp rax, 0	;si el resultado es cero
+	je _excepcion
 
 _aux_toStr:
 	mov rdx, 0	;inicializa el registro rdx
@@ -25,6 +27,9 @@ _aux_toStr:
 	imul r11, 100	;actualiza la constante de multiplicacion
 	jmp _aux_toStr
 
+_excepcion:
+	mov r12, 4832	;almacena el equivalente de 0 en ascii
+	jmp _toStore
 
 _toStore:
 	mov rax, r11	;mueve la constante de ubicacion a rax
