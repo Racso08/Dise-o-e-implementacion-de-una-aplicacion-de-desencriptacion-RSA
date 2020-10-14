@@ -13,7 +13,7 @@ section .bss
 	text resb 1750866
 	d resb 16
 	n resb 16
-	output resb 1000
+	output resb 10000000
 
 section .text
 	global _start
@@ -66,7 +66,7 @@ _fileManipulation:
 
 _getByte:
 	mov rcx, text		;guarda el input en el registro rcx
-	add rcx, 0x94		;coloca puntero en el primer dato
+	add rcx, 0x91		;coloca puntero en el primer dato
 	add rcx, 1		;aumenta un byte
 	mov rsi, 0 		;contador
 	mov rax, 0  		;inicializo resultado
@@ -133,7 +133,7 @@ _writeFile:
  	syscall
 
 	mov [fd], rax
- 	mov rdx, 100       ;message length
+ 	mov rdx, 1073800       ;message length
  	mov rsi, output       ;message to write
  	mov rdi, [fd]      ;file descriptor
  	mov rax, 1         ;system call number (sys_write)
@@ -210,7 +210,6 @@ _fixEntry:
 	mov rsi, 0              ;contador
         mov rax, 0              ;inicializo resultado
         mov rbx, 10             ;constante de multiplicacion (rax = rax * 10)
-	print loading
         jmp _aux_getByte
 
 _done:
