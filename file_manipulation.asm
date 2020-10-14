@@ -172,9 +172,9 @@ _toStr:
 
 _aux_toStr:
 	mov rdx, 0	;inicializa el registro rdx
+	cmp rax, 0      ;compara el número se convirtio en cero
+        je _toStore
 	div rbx		;divide por 10 el registro 10
-	cmp rdx, 0	;compara el número se convirtio en cero
-	je _toStore
 	add rdx, 48	;suma 48 al resultado
 	imul rdx, r11	;multiplica por la constante
 	add r12, rdx	;suma al resultado el valor calculado
