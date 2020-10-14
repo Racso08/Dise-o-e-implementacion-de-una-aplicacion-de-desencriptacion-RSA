@@ -139,7 +139,7 @@ _writeFile:
  	syscall
 
 	mov [fd], rax
- 	mov rdx, 1210000       ;message length
+ 	mov rdx, 1195980       ;message length
  	mov rsi, output       ;message to write
  	mov rdi, [fd]      ;file descriptor
  	mov rax, 1         ;system call number (sys_write)
