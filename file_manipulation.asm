@@ -7,6 +7,8 @@ section .data
 	text0 db "Ingrese el párametro 'd' de la llave privada...",10,0
 	text1 db "Introduzca el parámetro 'n' de la llave privada...",10,0
 	loading db "Cargando...",10,0
+	complete db "Completado!",10,0
+	inicio db "Desencriptador RSA",10,0
 	fd dq 0
 
 section .bss
@@ -19,6 +21,8 @@ section .text
 	global _start
 
 _start:
+	print inicio
+
 	print text0
 
 _getD:
@@ -44,6 +48,8 @@ _getN:
 	mov rbp, n
 	call _convertParam
 	mov r9, rax
+
+	print loading
 
 _fileManipulation:
 	mov rax, 2
@@ -133,7 +139,7 @@ _writeFile:
  	syscall
 
 	mov [fd], rax
- 	mov rdx, 1073800       ;message length
+ 	mov rdx, 1193693       ;message length
  	mov rsi, output       ;message to write
  	mov rdi, [fd]      ;file descriptor
  	mov rax, 1         ;system call number (sys_write)
@@ -142,6 +148,8 @@ _writeFile:
  	mov rdi, [fd]
  	mov rax, 3         ;sys_close
  	syscall
+
+	print complete
 
  	mov rax, 60        ;system call number (sys_exit)
 	syscall            ;call k
