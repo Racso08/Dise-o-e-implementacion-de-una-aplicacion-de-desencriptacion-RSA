@@ -1,0 +1,6 @@
+﻿# Created by Octave 5.1.0, Wed Jun 03 14:40:50 2020 GMT <unknown@DESKTOP-G6D2GAU>
+# name: salida
+# type: matrix
+# rows: 1
+# columns: 614400
+ 6 49 125

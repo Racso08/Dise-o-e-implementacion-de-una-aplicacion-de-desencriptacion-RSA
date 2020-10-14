@@ -1,0 +1,100 @@
+%include "linux64.inc"
+
+section .data
+	filename db "0.txt",0
+	text0 db "Ingrese el párametro 'd' de la llave privada...",10,0
+	text1 db "Introduzca el parámetro 'n' de la llave privada...",10,0
+
+section .bss
+	text resb 1750866
+	d resb 16
+	n resb 16
+
+section .text
+	global _start
+
+_start:
+	print text0
+
+_getD:
+	mov rax, 0
+	mov rdi, 0
+	mov rsi, d
+	mov rdx, 16
+	syscall
+
+	mov rax, 2
+	mov rdi, filename
+	mov rsi, 0
+	mov rdx, 0
+	syscall
+
+	print text1
+
+_getN:
+        mov rax, 0
+        mov rdi, 0
+        mov rsi, n
+        mov rdx, 16
+        syscall
+     
+
+	push rax
+
+	mov rdi, rax
+	mov rax, 0
+	mov rsi, text
+	mov rdx, 1750865
+	syscall
+
+	mov rax, 3
+	pop rdi
+	syscall
+
+_getByte:
+	mov rcx, text		;guarda el input en el registro rcx
+	add rcx, 0x94		;coloca puntero en el primer dato
+	add rcx, 1		;aumenta un byte
+	mov rsi, 0 		;contador
+	mov rax, 0  		;inicializo resultado
+	mov rbx, 10		;constante
+
+_aux_getByte:
+	movzx rdx, byte[rcx]	;agarra el primer byte
+	cmp rdx, 0xd		;se termino la matriz
+	je _done 		;verificar porque no se que mierdas hacer
+	cmp rdx, 0x20		;comprueba si es un espacio
+	je _incByte
+
+_toInt:
+        inc rcx                 ;siguiente byte
+        sub rdx, '0'            ;brinda el valor en decimal
+        imul rax, rbx           ;rax = rax*10
+        add rax, rdx            ;rax = rax + rdx
+	jmp _aux_getByte
+
+_incByte:
+	cmp rsi, 1		;compara si la bandera(dos numeros) esta activa
+	je _toDesencrip
+	inc rcx			;siguiente byte
+	inc rsi			;aumenta el contador
+	mov rdi, rax		;guardo el primer valor obtenido en rdi
+	mov rax, 0		;inicializa resultado
+	jmp _aux_getByte
+
+_toDesencrip:
+	shl rax, 8		;se mueven 8 espacios a la izquierda
+	add rax, rdi		;se suman los dos valores
+	mov rsp, rax		;se guarda el valor a desencriptar
+	mov rax,0		;inicializa resultado
+	mov rsi,0		;inicializa contador
+
+	exit
+
+_done:
+	exit
+
+_fixEntry:
+        inc rcx         ;siguiente byte
+        ret
+

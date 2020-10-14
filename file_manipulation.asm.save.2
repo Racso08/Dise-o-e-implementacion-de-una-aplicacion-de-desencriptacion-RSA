@@ -1,0 +1,186 @@
+%include "linux64.inc"
+
+section .data
+	filename db "0.txt",0
+	result_file db "imagen_desencriptada.txt",0
+	text0 db "Ingrese el párametro 'd' de la llave privada...",10,0
+	text1 db "Introduzca el parámetro 'n' de la llave privada...",10,0
+
+section .bss
+	text resb 1750866
+	d resb 16
+	n resb 16
+	output resb 1000
+
+section .text
+	global _start
+
+_start:
+	print text0
+
+_getD:
+	mov rax, 0
+	mov rdi, 0
+	mov rsi, d
+	mov rdx, 16
+	syscall
+
+	mov rbp, d
+	call _convertParam
+	mov r8, rax
+
+	print text1
+
+_getN:
+        mov rax, 0
+        mov rdi, 0
+        mov rsi, n
+        mov rdx, 16
+        syscall
+
+	mov rbp, n
+	call _convertParam
+	mov r9, rax
+
+_fileManipulation:
+	mov rax, 2
+	mov rdi, filename
+	mov rsi, 0
+	mov rdx, 0
+	syscall
+
+	push rax
+
+	mov rdi, rax
+	mov rax, 0
+	mov rsi, text
+	mov rdx, 1750865
+	syscall
+
+	mov rax, 3
+	pop rdi
+	syscall
+
+_getByte:
+	mov rcx, text		;guarda el input en el registro rcx
+	add rcx, 0x94		;coloca puntero en el primer dato
+	add rcx, 1		;aumenta un byte
+	mov rsi, 0 		;contador
+	mov rax, 0  		;inicializo resultado
+	mov rbx, 10		;constante
+
+_aux_getByte:
+	movzx rdx, byte[rcx]	;agarra el primer byte
+	cmp rdx, 0xd		;se termino la matriz
+	je _done 		;verificar porque no se que mierdas hacer
+	cmp rdx, 0x20		;comprueba si es un espacio
+	je _incByte
+
+_toInt:
+        inc rcx                 ;siguiente byte
+        sub rdx, '0'            ;brinda el valor en decimal
+        imul rax, rbx           ;rax = rax*10
+        add rax, rdx            ;rax = rax + rdx
+	jmp _aux_getByte
+
+_incByte:
+	cmp rsi, 1		;compara si la bandera(dos numeros) esta activa
+	je _toDesencrip
+	inc rcx			;siguiente byte
+	inc rsi			;aumenta el contador
+	mov rdi, rax		;guardo el primer valor obtenido en rdi
+	mov rax, 0		;inicializa resultado
+	jmp _aux_getByte
+
+_toDesencrip:
+	shl rax, 8		;se mueven 8 espacios a la izquierda
+	add rax, rdi		;se suman los dos valores
+	mov r10, 4		;se guarda el valor a desencriptar
+	mov r11, 1		;se inicializa el valor del auxiliar
+	mov r12, 0		;contador
+	mov r13, r10		;temporal que alberga el valor a desencriptar
+
+_desencripProcess:
+	cmp r12, r8		; compara si d == r11
+	je _prepareWriting
+	mov r10,r13		;reafirma el parámetro
+	imul r10, r11		; =(1*c)
+	mov rax, r10
+	mov rdx, 0		;confirmacion de que el registro no hay nada
+	div r9			; mod(n)
+	mov r11, rdx		;guarda el valor en r11
+	inc r12			;incrementa el contador
+	jmp _desencripProcess
+
+_prepareWriting:
+	mov rax, r11		;muevo el valor desencriptado al registro rax
+	call  _toStr
+	mov [output], r12
+
+_writeFile:
+	mov rax, 2
+	mov rdi, result_file
+	mov rsi, 64 + 1
+	mov rdx, 0644o
+	syscall
+_aqui:
+	getText output
+	mov rsi, rax
+
+	push rax
+	mov rdi, rax
+	mov rax, 1
+	mov rdx, 10000000000
+	syscall
+
+	mov rax, 3
+	pop rdi
+	syscall
+
+	;mov rax, 52525332h
+	;mov [output], rax
+	;print output
+
+	exit
+
+_convertParam:
+	mov rax, 0		;inicializo resultado
+	mov rbx, 10		;constante
+	mov rcx, rbp		;guarda el input en el registro rcx
+
+_aux_convertParam:
+	movzx rdx, byte[rcx]	;agarra el primer byte
+	cmp rdx, 0xa		;rdx == 0?
+	je _completed
+	inc rcx			;siguiente byte
+	sub rdx, '0'		;brinda el valor en decimal
+	imul rax, rbx		;rax = rax*10
+	add rax, rdx		;rax = rax + rdx
+	jmp _aux_convertParam
+
+_completed:
+	ret
+
+_toStr:
+	mov r12, 32	;resultado
+	mov rbx, 10	;constante de división
+	mov r11, 100	;constante para ubicación
+	mov rdx, 1	;inicializo el registro
+
+_aux_toStr:
+	mov rdx, 0
+	div rbx
+	cmp rdx, 0	;compara el número se convirtio en cero
+	je _completed
+	add rdx, 48
+	imul rdx, r11
+	add r12, rdx
+	imul r11, 100
+	jmp _aux_toStr
+
+_fixEntry:
+        inc rcx         ;siguiente byte
+        ret
+
+_done:
+	exit
