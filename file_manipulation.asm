@@ -6,6 +6,7 @@ section .data
 	len equ $ - out_filename
 	text0 db "Ingrese el párametro 'd' de la llave privada...",10,0
 	text1 db "Introduzca el parámetro 'n' de la llave privada...",10,0
+	loading db "Cargando...",10,0
 	fd dq 0
 
 section .bss
@@ -73,9 +74,11 @@ _getByte:
 	mov r14, 0		;contador para la variable output
 
 _aux_getByte:
+	cmp r13, 1
+	je _writeFile
 	movzx rdx, byte[rcx]	;agarra el primer byte
-	cmp rdx, 0xd		;se termino la matriz
-	je _done 		;verificar porque no se que mierdas hacer
+	cmp rdx, 0xa		;se termino la matriz
+	je _prepareExit 		;verificar porque no se que mierdas hacer
 	cmp rdx, 0x20		;comprueba si es un espacio
 	je _incByte
 
@@ -85,6 +88,9 @@ _toInt:
         imul rax, rbx           ;rax = rax*10
         add rax, rdx            ;rax = rax + rdx
 	jmp _aux_getByte
+
+_prepareExit:
+	mov r13,1		;Activa Bandera para salir
 
 _incByte:
 	cmp rsi, 1		;compara si la bandera(dos numeros) esta activa
@@ -101,12 +107,12 @@ _toDesencrip:
 	mov r10, rdi		;se guarda el valor a desencriptar
 	mov r11, 1		;se inicializa el valor del auxiliar
 	mov r12, 0		;contador
-	mov r13, r10		;temporal que alberga el valor a desencriptar
+	mov rbp, r10		;temporal que alberga el valor a desencriptar
 
 _desencripProcess:
 	cmp r12, r8		; compara si d == r11
 	je _prepareWriting
-	mov r10,r13		;reafirma el parámetro
+	mov r10,rbp		;reafirma el parámetro
 	imul r10, r11		; =(1*c)
 	mov rax, r10
 	mov rdx, 0		;confirmacion de que el registro no hay nada
@@ -178,14 +184,14 @@ _aux_toStr:
 _toStore:
 	mov rax, r11	;mueve la constante de ubicacion a rax
 	mov rdx, 0	;inicializa el registro para almacenar el residuo
-	mov rcx, 100	;carga 100 al registro rcx
-	div rcx		;divido rax entre 100
+	mov r15, 100	;carga 100 al registro rcx
+	div r15		;divido rax entre 100
 	mov r11, rax	;carga en r11 la constante de ubicacion actualizada
 	mov rax, r12    ;carga a rax el valor en ascii ordenado
 
 _aux_toStore:
 	cmp rax, 0			;se concluye la funcion
-	je _aux_getByte
+	je _fixEntry
 	mov rdx, 0			;incializa el registro para almacenar el residuo
 	div r11				;divido por la constante de ubicacion
 	mov [output + r14], rax		;carga en la variable output el n elemento ascii
@@ -193,15 +199,19 @@ _aux_toStore:
 	mov r12, rdx			;guardo el resto del ascii
 	mov rax, r11   			;mueve la constante de ubicacion a rax
         mov rdx, 0     			;inicializa el registro para almacenar el residuo
-        mov rcx, 100   			;carga 100 al registro rcx
-        div rcx         		;divido rax entre 100
+        mov r15, 100   			;carga 100 al registro rcx
+        div r15         		;divido rax entre 100
         mov r11, rax    		;carga en r11 la constante de ubicacion actualizada
 	mov rax, r12			;carga a rax el valor en ascii ordenado
 	jmp _aux_toStore
 
 _fixEntry:
         inc rcx         ;siguiente byte
-        ret
+	mov rsi, 0              ;contador
+        mov rax, 0              ;inicializo resultado
+        mov rbx, 10             ;constante de multiplicacion (rax = rax * 10)
+	print loading
+        jmp _aux_getByte
 
 _done:
 	exit
