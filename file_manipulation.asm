@@ -139,7 +139,7 @@ _writeFile:
  	syscall
 
 	mov [fd], rax
- 	mov rdx, 1193693       ;message length
+ 	mov rdx, 1210000       ;message length
  	mov rsi, output       ;message to write
  	mov rdi, [fd]      ;file descriptor
  	mov rax, 1         ;system call number (sys_write)
@@ -177,6 +177,8 @@ _toStr:
 	mov rbx, 10	;constante de división
 	mov r11, 100	;constante para ubicación
 	mov rdx, 1	;inicializo el registro
+	cmp rax, 0	;si el resultado es cero
+	je _excepcion
 
 _aux_toStr:
 	mov rdx, 0	;inicializa el registro rdx
@@ -188,6 +190,17 @@ _aux_toStr:
 	add r12, rdx	;suma al resultado el valor calculado
 	imul r11, 100	;actualiza la constante de multiplicacion
 	jmp _aux_toStr
+
+_excepcion:
+	mov r12, 4832	;carga el valor correspondiente en ascii
+	mov rax, r12
+	mov rdx, 0
+	div r11
+	mov [output + r14], rax
+	inc r14
+	mov [output + r14], rdx
+	inc r14
+	jmp _fixEntry
 
 _toStore:
 	mov rax, r11	;mueve la constante de ubicacion a rax
